@@ -6,6 +6,12 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const { displayName, email, password } = req.body;
 
+    if (!displayName || !email || !password) {
+      return res
+        .status(404)
+        .json({ message: "Veillez remplir les champs manquant !" });
+    }
+
     try {
       // Créer l'utilisateur avec Firebase Admin SDK
       const userRecord = await auth.createUser({
