@@ -3,6 +3,7 @@ import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 
 const Transaction = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [DataInfo, setDataInfo] = useState(null);
   const [Historique, setHistorique] = useState([]);
   const [InputSearch, setSearch] = useState("");
@@ -10,7 +11,7 @@ const Transaction = () => {
   // Récupération du profil utilisateur
   useEffect(() => {
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
       const data = await r.json();
@@ -23,15 +24,12 @@ const Transaction = () => {
   useEffect(() => {
     async function GetHistorique() {
       if (!DataInfo) return;
-      const r = await fetch(
-        `http://localhost:3000/api/historique?uid=${DataInfo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/historique?uid=${DataInfo}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await r.json();
       setHistorique(data.table);
     }

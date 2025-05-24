@@ -13,6 +13,7 @@ const unite = [
   { id: 5, nom: "Once", abbr: "oz", type: "poids" },
 ];
 export default function UserPage() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
   const { id } = router.query;
   const [DataInfo, setDataInfo] = useState([]);
@@ -46,7 +47,7 @@ export default function UserPage() {
   useEffect(() => {
     // Étape 1 : récupérer le profil
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
 
@@ -61,7 +62,7 @@ export default function UserPage() {
   useEffect(() => {
     async function GetProduits() {
       const r = await fetch(
-        `http://localhost:3000/api/getproduitobjet?uid=${DataInfo}&id=${id}`,
+        `${apiBaseUrl}/api/getproduitobjet?uid=${DataInfo}&id=${id}`,
         {
           method: "GET",
           headers: {
@@ -86,16 +87,13 @@ export default function UserPage() {
     e.preventDefault();
     const body = { ...InputValue[0], id };
 
-    const r = await fetch(
-      `http://localhost:3000/api/editeproduits?uid=${DataInfo}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const r = await fetch(`${apiBaseUrl}/api/editeproduits?uid=${DataInfo}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
     const data = await r.json();
     const message = data.message;
     if (r.ok) {

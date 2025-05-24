@@ -12,6 +12,7 @@ const unite = [
 ];
 
 export const ProduisComposant = ({ titre }) => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
   const [RecupeId, setRecupeId] = useState(null);
   const [TableCategorie, setTableCategorie] = useState([]);
@@ -34,22 +35,17 @@ export const ProduisComposant = ({ titre }) => {
     }));
   };
 
-  // Récupère l'UID du profil
+  // Récupération du profil utilisateur
   useEffect(() => {
-    async function GetProfile() {
-      try {
-        const r = await fetch("http://localhost:3000/api/profile", {
-          credentials: "include",
-        });
-        const data = await r.json();
-        setDataInfo(data.user.uid);
-      } catch (error) {
-        toast.error("Erreur lors du chargement du profil");
-      }
+    async function GetProfil() {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
+        credentials: "include",
+      });
+      const data = await r.json();
+      setDataInfo(data.user.uid);
     }
-    GetProfile();
+    GetProfil();
   }, []);
-
   // Récupère les catégories liées à l'UID
   useEffect(() => {
     if (!DataInfo) return;
@@ -57,7 +53,7 @@ export const ProduisComposant = ({ titre }) => {
     async function fetchCategories() {
       try {
         const r = await fetch(
-          `http://localhost:3000/api/getcategorie?uid=${DataInfo}`,
+          `${apiBaseUrl}/api/getcategorie?uid=${DataInfo}`,
           {
             method: "GET",
             headers: {
@@ -99,16 +95,13 @@ export const ProduisComposant = ({ titre }) => {
       } else if (InputValue.categorie === "") {
         toast.error("Veillez ajouter une catégorie au produit !");
       } else {
-        const r = await fetch(
-          `http://localhost:3000/api/produitsadd?uid=${DataInfo}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          }
-        );
+        const r = await fetch(`${apiBaseUrl}/api/produitsadd?uid=${DataInfo}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
 
         const data = await r.json();
 

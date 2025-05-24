@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 const Connexion = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   // initialisation des hooks
   const [valuInput, setValuInput] = useState({
     email: "",
@@ -23,7 +24,7 @@ const Connexion = () => {
 
   async function SignIn(e) {
     e.preventDefault();
-    const r = await fetch("http://localhost:3000/api/userconnected", {
+    const r = await fetch(`${apiBaseUrl}/api/userconnected`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -44,7 +45,7 @@ const Connexion = () => {
 
   // Exemple React (useEffect)
   useEffect(() => {
-    fetch("/api/profile", {
+    fetch(`${apiBaseUrl}/api/profile`, {
       credentials: "include", // Obligatoire pour envoyer les cookies
     })
       .then((res) => res.json())
@@ -60,16 +61,13 @@ const Connexion = () => {
   async function EditePassword() {
     const body = { email: valuInput.emailValide };
 
-    const r = await fetch(
-      "http://localhost:3000/api/passwordOublier/passwordReset",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const r = await fetch(`${apiBaseUrl}/api/passwordOublier/passwordReset`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
     const data = await r.json();
     const message = data.message;

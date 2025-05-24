@@ -6,6 +6,7 @@ import {
 } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { CircleUserRound, Fingerprint } from "lucide-react";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Wrapper from "../../../components/wrapper";
@@ -17,10 +18,12 @@ const butonList = [
 ];
 
 const Réglage = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const router = useRouter();
   const [Button, setButton] = useState("Général");
   const [ElementAffiche, setElementAffiche] = useState(null);
   const [email, setEmail] = useState(null);
-  const [recupeEmail, setRecupeEmail] = useState(null);
+
   const [Message, setMessage] = useState(null);
   const [DisplayName, setDisplayName] = useState([]);
   const [user, setUser] = useState(null);
@@ -50,7 +53,7 @@ const Réglage = () => {
         }))
       : [];
     setDisplayName(newTable);
-    const r = await fetch("http://localhost:3000/api/reglage/miseajourprofil", {
+    const r = await fetch(`${apiBaseUrl}/api/reglage/miseajourprofil`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -76,7 +79,7 @@ const Réglage = () => {
 
   async function EditeEmail() {
     const body = { email: valueInput.email, uid: DataInfo };
-    const r = await fetch("http://localhost:3000/api/reglage/updateEmail", {
+    const r = await fetch(`${apiBaseUrl}/api/reglage/updateEmail`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,16 +107,13 @@ const Réglage = () => {
     e.preventDefault();
     if (valueInput.password === valueInput.password2) {
       const body = { password: valueInput.password, uid: DataInfo };
-      const r = await fetch(
-        "http://localhost:3000/api/reglage/updatepassword",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/reglage/updatepassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
 
       const data = await r.json();
       console.log(data.message);
@@ -134,7 +134,7 @@ const Réglage = () => {
   }
 
   useEffect(() => {
-    fetch("/api/profile", {
+    fetch(`${apiBaseUrl}/api/profile`, {
       credentials: "include", // Obligatoire pour envoyer les cookies
     })
       .then((res) => res.json())
@@ -153,7 +153,7 @@ const Réglage = () => {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/userData/getUserData?uid=${DataInfo}`, {
+    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${DataInfo}`, {
       method: "GET",
     })
       .then((response) => response.json())
@@ -168,7 +168,7 @@ const Réglage = () => {
 
   async function DeletedProil() {
     const r = await fetch(
-      `http://localhost:3000/api/DeletedCompte/deleted?uid=${DataInfo}`,
+      `${apiBaseUrl}/api/DeletedCompte/deleted?uid=${DataInfo}`,
       {
         method: "DELETE",
         headers: {
@@ -191,7 +191,7 @@ const Réglage = () => {
   //   deconnexion
 
   const logout = async () => {
-    const r = await fetch("/api/logout", {
+    const r = await fetch(`${apiBaseUrl}/api/logout`, {
       method: "POST",
     });
 

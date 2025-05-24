@@ -32,6 +32,7 @@ const menu = [
 ];
 
 export const NavBar = ({ OpenModale2, OpenModale1 }) => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [DisplayName, setDisplayName] = useState(null);
   const [DataInfo, setDataInfo] = useState([]);
   const pathname = usePathname();
@@ -57,7 +58,7 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
   const buttonRef = useRef();
   // deconnexion
   const logout = async () => {
-    const r = await fetch("/api/logout", {
+    const r = await fetch(`${apiBaseUrl}/api/logout`, {
       method: "POST",
     });
 
@@ -92,7 +93,7 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/userData/getUserData?uid=${DataInfo}`, {
+    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${DataInfo}`, {
       method: "GET",
     })
       .then((response) => response.json())

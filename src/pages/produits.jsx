@@ -8,30 +8,28 @@ import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 
 const produits = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [DataInfo, setDataInfo] = useState([]);
   const [TableProduit, setTableProduit] = useState([]);
   const [Open, setOpent] = useState(false);
   const [valide, setValide] = useState(null);
 
+  // Récupération du profil utilisateur
   useEffect(() => {
-    // Étape 1 : récupérer le profil
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
-
       const data = await r.json();
-
-      setDataInfo(data.user.uid); // Déclenchera le useEffect suivant
+      setDataInfo(data.user.uid);
     }
-
     GetProfil();
   }, []);
 
   useEffect(() => {
     async function GetProduits() {
       const r = await fetch(
-        `http://localhost:3000/api/getproduits?uid=${DataInfo}`,
+        `${apiBaseUrl}/api/getproduits?uid=${DataInfo}`,
         {
           method: "GET",
           headers: {
@@ -50,7 +48,7 @@ const produits = () => {
 
   async function DeletedProduits() {
     const r = await fetch(
-      `http://localhost:3000/api/deleteproduits?uid=${DataInfo}/`,
+      `${apiBaseUrl}/api/deleteproduits?uid=${DataInfo}/`,
       {
         method: "DELETE",
         headers: {

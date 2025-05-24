@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { Bouton } from "./bouton";
 
 export const ModuleComposant = ({ CloseModale }) => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [DataInfo, setDataInfo] = useState([]);
   const [TableProduit, setTableProduit] = useState([]);
   const [OptionValue, setOptionValue] = useState(null);
@@ -10,9 +11,10 @@ export const ModuleComposant = ({ CloseModale }) => {
     newQuantity: 0,
   });
 
+  // Récupération du profil utilisateur
   useEffect(() => {
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
       const data = await r.json();
@@ -24,15 +26,12 @@ export const ModuleComposant = ({ CloseModale }) => {
   useEffect(() => {
     async function GetProduits() {
       if (!DataInfo) return;
-      const r = await fetch(
-        `http://localhost:3000/api/getproduits?uid=${DataInfo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/getproduits?uid=${DataInfo}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await r.json();
       setTableProduit(data.table);
     }
@@ -77,7 +76,7 @@ export const ModuleComposant = ({ CloseModale }) => {
     const body = { newQuantity: quantiteAAjouter, id: id };
 
     const r = await fetch(
-      `http://localhost:3000/api/ajouterquantite?uid=${DataInfo}&id=${id}`,
+      `${apiBaseUrl}/api/ajouterquantite?uid=${DataInfo}&id=${id}`,
       {
         method: "POST",
         headers: {

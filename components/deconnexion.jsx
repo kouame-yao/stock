@@ -4,8 +4,9 @@ import { CircleUserRound } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function Deconnexion({ nameUser, key }) {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const logout = async () => {
-    const r = await fetch("/api/logout", {
+    const r = await fetch(`${apiBaseUrl}/api/logout`, {
       method: "POST",
     });
 

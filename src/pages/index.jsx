@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 const Connexion = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   // initialisation des hooks
   const [valuInput, setValuInput] = useState({
     displayName: "",
@@ -21,7 +22,7 @@ const Connexion = () => {
 
   async function SignIn(e) {
     e.preventDefault();
-    const r = await fetch("http://localhost:3000/api/creeuser", {
+    const r = await fetch(`${apiBaseUrl}/api/creeuser`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

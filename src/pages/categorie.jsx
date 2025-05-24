@@ -5,6 +5,7 @@ import { Bouton } from "../../components/bouton";
 import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 const Categorie = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [Open, setOpen] = useState(false);
   const [OpenEdited, setOpenEdited] = useState(false);
   const [DataInfo, setDataInfo] = useState(null);
@@ -27,29 +28,24 @@ const Categorie = () => {
     }));
   };
 
+  // Récupération du profil utilisateur
   useEffect(() => {
-    // Étape 1 : récupérer le profil
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
-
       const data = await r.json();
-
-      setDataInfo(data.user); // Déclenchera le useEffect suivant
+      setDataInfo(data.user.uid);
     }
-
     GetProfil();
   }, []);
 
   useEffect(() => {
     // Étape 2 : attendre que DataInfo.uid soit prêt
-    if (!DataInfo?.uid) return;
+    if (!DataInfo) return;
 
     async function fetchCategories() {
-      const r = await fetch(
-        `http://localhost:3000/api/getcategorie?uid=${DataInfo.uid}`
-      );
+      const r = await fetch(`${apiBaseUrl}/api/getcategorie?uid=${DataInfo}`);
       const data = await r.json();
 
       setCategorie(data.table);
@@ -61,9 +57,9 @@ const Categorie = () => {
   // ajouter une categorie
 
   async function AddCategorie(e) {
-    const body = { ...InputModale, uid: DataInfo.uid };
+    const body = { ...InputModale, uid: DataInfo };
     e.preventDefault();
-    const r = await fetch("http://localhost:3000/api/categorieadd", {
+    const r = await fetch(`${apiBaseUrl}/api/categorieadd`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,18 +85,15 @@ const Categorie = () => {
   }
 
   async function DeletedCategorie(id) {
-    if (!DataInfo?.uid) return;
+    if (!DataInfo) return;
 
-    const r = await fetch(
-      `http://localhost:3000/api/deletecategorie?uid=${DataInfo.uid}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
-      }
-    );
+    const r = await fetch(`${apiBaseUrl}/api/deletecategorie?uid=${DataInfo}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
 
     const data = await r.json();
     const message = data.message;
@@ -117,16 +110,13 @@ const Categorie = () => {
   async function EditedCategorie(e, id) {
     e.preventDefault();
     const body = { ...InputModale, id: id };
-    const r = await fetch(
-      `http://localhost:3000/api/editedcategorie?uid=${DataInfo.uid}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const r = await fetch(`${apiBaseUrl}/api/editedcategorie?uid=${DataInfo}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
     const data = await r.json();
     const message = data.message;

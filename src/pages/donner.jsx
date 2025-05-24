@@ -14,6 +14,7 @@ import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 
 const donner = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [DataInfo, setDataInfo] = useState([]);
   const [inputSearch, setInputSearch] = useState("");
   const [recupeId, setRecupeId] = useState(null);
@@ -22,9 +23,10 @@ const donner = () => {
   const [listeSelect, setListSelect] = useState([]);
   const [erreurMessage, setErreurMessage] = useState("");
 
+  // Récupération du profil utilisateur
   useEffect(() => {
     async function GetProfil() {
-      const r = await fetch("http://localhost:3000/api/profile", {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
         credentials: "include",
       });
       const data = await r.json();
@@ -37,7 +39,7 @@ const donner = () => {
     async function GetProduits() {
       if (!DataInfo) return;
       const r = await fetch(
-        `http://localhost:3000/api/getproduits?uid=${DataInfo}`,
+        `${apiBaseUrl}/api/getproduits?uid=${DataInfo}`,
         {
           method: "GET",
           headers: {
@@ -72,7 +74,7 @@ const donner = () => {
     const body = { newQuantity: InputUnitValue.newQuantity };
 
     const r = await fetch(
-      `http://localhost:3000/api/donner?uid=${DataInfo}&id=${recupeId}`,
+      `${apiBaseUrl}/api/donner?uid=${DataInfo}&id=${recupeId}`,
       {
         method: "POST",
         headers: {

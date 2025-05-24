@@ -5,36 +5,32 @@ import { Tableau } from "../../components/table";
 import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 const Acceuil = () => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [TableProduit, setTableProduit] = useState([]);
   const [DataInfo, setDataInfo] = useState([]);
   const [Categorie, setCategorie] = useState([]);
   const [Historique, setHistorique] = useState([]);
   const router = useRouter();
+  // Récupération du profil utilisateur
   useEffect(() => {
-    fetch("/api/profile", {
-      credentials: "include", // Obligatoire pour envoyer les cookies
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setDataInfo(data.user.uid);
-        } else {
-          console.warn("Non connecté :", data.error);
-        }
+    async function GetProfil() {
+      const r = await fetch(`${apiBaseUrl}/api/profile`, {
+        credentials: "include",
       });
+      const data = await r.json();
+      setDataInfo(data.user.uid);
+    }
+    GetProfil();
   }, []);
 
   useEffect(() => {
     async function GetProduits() {
-      const r = await fetch(
-        `http://localhost:3000/api/getproduits?uid=${DataInfo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/getproduits?uid=${DataInfo}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await r.json();
 
       setTableProduit(data.table);
@@ -48,7 +44,7 @@ const Acceuil = () => {
 
     async function fetchCategories() {
       const r = await fetch(
-        `http://localhost:3000/api/getcategorie?uid=${DataInfo}`
+        `${apiBaseUrl}/api/getcategorie?uid=${DataInfo}`
       );
       const data = await r.json();
 
@@ -62,7 +58,7 @@ const Acceuil = () => {
   useEffect(() => {
     async function GetHistorique() {
       const r = await fetch(
-        `http://localhost:3000/api/historique?uid=${DataInfo}`,
+        `${apiBaseUrl}/api/historique?uid=${DataInfo}`,
         {
           method: "GET",
           headers: {
@@ -76,13 +72,13 @@ const Acceuil = () => {
     GetHistorique();
   }, [DataInfo]);
 
-  const logout = async () => {
-    await fetch("/api/logout", {
-      method: "POST",
-    });
+  // const logout = async () => {
+  //   await fetch("/api/logout", {
+  //     method: "POST",
+  //   });
 
-    router.push("/connexion"); // Redirige vers la page de login
-  };
+  //   router.push("/connexion"); // Redirige vers la page de login
+  // };
 
   const TotalePrice = Array.isArray(TableProduit)
     ? TableProduit.reduce((somme, item) => (somme = somme + item.price || 0), 0)
