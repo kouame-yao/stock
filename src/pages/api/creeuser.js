@@ -1,45 +1,23 @@
-import { initializeApp } from "firebase/app";
-import {
-  createUserWithEmailAndPassword,
-  getAuth,
-  updateProfile,
-} from "firebase/auth";
-import { db } from "../../../firebase/Auth";
+// pages/api/creeuser.js
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { auth, db } from "../../../firebase/Auth"; // ← doit être Firebase Admin SDK ici
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const { displayName, email, password } = req.body;
 
     try {
-      // Création de l'utilisateur
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      // Créer l'utilisateur avec Firebase Admin SDK
+      const userRecord = await auth.createUser({
         email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Mise à jour du profil avec le nom affiché
-      await updateProfile(user, {
-        displayName: displayName,
+        password,
+        displayName,
       });
 
-      // Enregistrement dans Firestore
-      await db.collection("user").doc(user.uid).set({
-        displayName: displayName,
-        email: email,
+      // Enregistrer les infos dans Firestore
+      await db.collection("user").doc(userRecord.uid).set({
+        displayName,
+        email,
         created: new Date(),
       });
 

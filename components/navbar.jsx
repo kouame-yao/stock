@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import Deconnexion from "./deconnexion";
+
 const menu = [
   { name: "Tableau de Bord", icon: <LayoutDashboard />, href: "/acceuil" },
   { name: "Produits", icon: <ShoppingBasket />, href: "/produits" },
@@ -32,10 +33,18 @@ const menu = [
 ];
 
 export const NavBar = ({ OpenModale2, OpenModale1 }) => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const [DisplayName, setDisplayName] = useState(null);
-  const [DataInfo, setDataInfo] = useState([]);
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+  const [displayName, setDisplayName] = useState(null);
+  const [userUid, setUserUid] = useState(null);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  // Récupération de l'UID utilisateur
   useEffect(() => {
     fetch("/api/profile", {
       credentials: "include", // Obligatoire pour envoyer les cookies
@@ -43,34 +52,31 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
-          setDataInfo(data.user.uid);
+          setUserUid(data.user.uid);
         } else {
           console.warn("Non connecté :", data.error);
         }
       });
   }, []);
 
-  const [open, setOpen] = useState(false);
+  // Récupération des infos utilisateur (displayName)
+  useEffect(() => {
+    if (!userUid) return;
+    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${userUid}`, {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((doc) => {
+        if (Array.isArray(doc.table)) {
+          setDisplayName(doc.table);
+        } else if (doc.table) {
+          setDisplayName([doc.table]);
+        }
+      })
+      .catch(() => setDisplayName(null));
+  }, [userUid, apiBaseUrl]);
 
-  const router = useRouter();
-
-  const menuRef = useRef();
-  const buttonRef = useRef();
-  // deconnexion
-  const logout = async () => {
-    const r = await fetch(`${apiBaseUrl}/api/logout`, {
-      method: "POST",
-    });
-
-    if (r.ok) {
-      toast.info("Vous êtes déconnecté");
-      setTimeout(() => {
-        router.push("/connexion");
-      }, 3000); // Redirige vers la page de login
-    } else {
-      alert("Erreur lors de la deconnexion");
-    }
-  };
+  // Gestion du clic en dehors du menu pour le fermer
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -83,109 +89,112 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
       }
     };
 
-    let timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
       document.addEventListener("click", handler);
-    }, 100); // ← petit délai pour éviter de capturer le clic qui ouvre
+    }, 100);
+
     return () => {
       clearTimeout(timeout);
       document.removeEventListener("click", handler);
     };
   }, []);
 
-  useEffect(() => {
-    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${DataInfo}`, {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((doc) => {
-        if (Array.isArray(doc.table)) {
-          setDisplayName(doc.table);
-        } else if (doc.table) {
-          setDisplayName([doc.table]);
-        }
-      });
-  }, [DataInfo]);
+  // Fonction déconnexion
+  const logout = async () => {
+    const res = await fetch(`${apiBaseUrl}/api/logout`, {
+      method: "POST",
+    });
+
+    if (res.ok) {
+      toast.info("Vous êtes déconnecté");
+      setTimeout(() => {
+        router.push("/connexion");
+      }, 3000);
+    } else {
+      alert("Erreur lors de la déconnexion");
+    }
+  };
 
   return (
     <div className="md:mt-8 md:px-30 w-full mb-8">
-      <div className="md:flex  justify-between items-center justify-items-center">
-        <Link href={"/acceuil"}>
+      <div className="md:flex justify-between items-center">
+        <Link href="/acceuil">
           <button className="hidden md:flex items-center bg-gray-500 py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer">
             <PackagePlus />
             AssoStock
           </button>
         </Link>
 
-        <div className="hidden md:flex space-x-3 ">
-          {menu.map((items, index) => (
-            <Link key={index} href={items.href}>
+        <div className="hidden md:flex space-x-3">
+          {menu.map((item, index) => (
+            <Link key={index} href={item.href}>
               <button
-                className={` ${
-                  pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
-                }  flex items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer`}
+                className={`flex items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer ${
+                  pathname === item.href ? "bg-blue-400" : "bg-gray-500"
+                }`}
               >
-                {items.icon} {items.name}
+                {item.icon} {item.name}
               </button>
             </Link>
           ))}
-          <Link href={"#"}>
-            <button
-              onClick={OpenModale2}
-              className="inline-flex bg-gray-500 items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer"
-            >
-              <Warehouse />
-              Alimenter le stock
-            </button>
-          </Link>
-          {Array.isArray(DisplayName) &&
-            DisplayName.map((items, index) => (
-              <Deconnexion nameUser={items.displayName} key={index} />
+
+          <button
+            onClick={OpenModale2}
+            className="inline-flex bg-gray-500 items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer"
+          >
+            <Warehouse />
+            Alimenter le stock
+          </button>
+
+          {Array.isArray(displayName) &&
+            displayName.map((item, index) => (
+              <Deconnexion nameUser={item.displayName} key={index} />
             ))}
         </div>
       </div>
 
-      {/* Menu phone */}
+      {/* Menu téléphone */}
       <div
         className={`md:hidden flex justify-between items-center px-4 py-4 ${
           open ? "hidden" : "block"
         }`}
       >
-        <button className="flex gap-2">
+        <button className="flex gap-2 items-center">
           <PackagePlus />
           AssoStock
         </button>
         <div
           ref={buttonRef}
-          onClick={() => {
-            setOpen(!open);
-          }}
+          onClick={() => setOpen(!open)}
           className="bg-gray-600 p-2 rounded-sm cursor-pointer"
+          aria-label="Ouvrir le menu"
         >
           <AlignJustify />
         </div>
       </div>
 
       {/* Menu mobile avec bouton Profil en bas */}
-      <div
+      <nav
         ref={menuRef}
-        className={`md:hidden bg-gray-900 w-8/12 fixed top-0 left-0 h-[100vh] transition-transform duration-300 ease-in-out z-50 py-6 px-4 flex flex-col justify-between   ${
+        className={`md:hidden bg-gray-900 w-8/12 fixed top-0 left-0 h-screen transition-transform duration-300 ease-in-out z-50 py-6 px-4 flex flex-col justify-between ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Haut du menu */}
         <div className="grid grid-cols-1 gap-4">
-          {menu.map((items, index) => (
+          {menu.map((item, index) => (
             <Link
-              onClick={() => setOpen(false)}
               key={index}
-              href={items.href}
-              className={`${
-                pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
-              }  inline-flex p-2 rounded-2xl gap-3 items-center  `}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={`inline-flex p-2 rounded-2xl gap-3 items-center ${
+                pathname === item.href ? "bg-blue-400" : "bg-gray-500"
+              }`}
             >
-              {items.icon} {items.name}
+              {item.icon} {item.name}
             </Link>
           ))}
+
           <button
             onClick={OpenModale1}
             className="bg-gray-500 inline-flex p-2 rounded-2xl gap-3 items-center cursor-pointer"
@@ -199,27 +208,27 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
         <div className="mb-8 flex flex-col">
           <div className="inline-flex space-x-3 items-center cursor-pointer p-2">
             <CircleUserRound />
-            {Array.isArray(DisplayName) &&
-              DisplayName.map((item, index) => (
+            {Array.isArray(displayName) &&
+              displayName.map((item, index) => (
                 <span key={index}>{item.displayName}</span>
               ))}
           </div>
           <div
-            onClick={() => (location.href = "/reglage/profil")}
+            onClick={() => router.push("/reglage/profil")}
             className="inline-flex space-x-3 items-center cursor-pointer p-2"
           >
             <Settings />
             <span>Paramètre</span>
           </div>
           <div
-            className="inline-flex space-x-3 items-center cursor-pointer p-2"
             onClick={logout}
+            className="inline-flex space-x-3 items-center cursor-pointer p-2"
           >
             <LogOut />
             <span>Déconnexion</span>
           </div>
         </div>
-      </div>
+      </nav>
     </div>
   );
 };

@@ -3,7 +3,8 @@ import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 
 const Transaction = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
   const [DataInfo, setDataInfo] = useState(null);
   const [Historique, setHistorique] = useState([]);
   const [InputSearch, setSearch] = useState("");

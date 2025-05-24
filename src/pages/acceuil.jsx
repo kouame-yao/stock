@@ -5,7 +5,8 @@ import { Tableau } from "../../components/table";
 import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 const Acceuil = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
   const [TableProduit, setTableProduit] = useState([]);
   const [DataInfo, setDataInfo] = useState([]);
   const [Categorie, setCategorie] = useState([]);
@@ -19,6 +20,8 @@ const Acceuil = () => {
       });
       const data = await r.json();
       setDataInfo(data.user.uid);
+
+      console.log("uid", data.user.uid);
     }
     GetProfil();
   }, []);
@@ -34,6 +37,8 @@ const Acceuil = () => {
       const data = await r.json();
 
       setTableProduit(data.table);
+
+      console.log("produit", data.table);
     }
 
     GetProduits();
@@ -43,12 +48,11 @@ const Acceuil = () => {
     // Étape 2 : attendre que DataInfo.uid soit prêt
 
     async function fetchCategories() {
-      const r = await fetch(
-        `${apiBaseUrl}/api/getcategorie?uid=${DataInfo}`
-      );
+      const r = await fetch(`${apiBaseUrl}/api/getcategorie?uid=${DataInfo}`);
       const data = await r.json();
 
       setCategorie(data.table);
+      console.log("categorie", data.table);
     }
 
     fetchCategories();
@@ -57,15 +61,12 @@ const Acceuil = () => {
   // Récupération de l'historique des transactions
   useEffect(() => {
     async function GetHistorique() {
-      const r = await fetch(
-        `${apiBaseUrl}/api/historique?uid=${DataInfo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/historique?uid=${DataInfo}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await r.json();
       setHistorique(data.table);
     }

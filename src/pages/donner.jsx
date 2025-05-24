@@ -14,7 +14,8 @@ import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 
 const donner = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
   const [DataInfo, setDataInfo] = useState([]);
   const [inputSearch, setInputSearch] = useState("");
   const [recupeId, setRecupeId] = useState(null);
@@ -38,15 +39,12 @@ const donner = () => {
   useEffect(() => {
     async function GetProduits() {
       if (!DataInfo) return;
-      const r = await fetch(
-        `${apiBaseUrl}/api/getproduits?uid=${DataInfo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const r = await fetch(`${apiBaseUrl}/api/getproduits?uid=${DataInfo}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const data = await r.json();
       setOrigineTableau(data.table);
     }

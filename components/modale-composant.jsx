@@ -1,176 +1,222 @@
-import { useEffect, useState } from "react";
+import {
+  AlignJustify,
+  CircleUserRound,
+  HandHeart,
+  LayoutDashboard,
+  ListTree,
+  LogOut,
+  PackagePlus,
+  Receipt,
+  Settings,
+  ShoppingBasket,
+  Warehouse,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { Bouton } from "./bouton";
+import Deconnexion from "./deconnexion";
+const menu = [
+  { name: "Tableau de Bord", icon: <LayoutDashboard />, href: "/acceuil" },
+  { name: "Produits", icon: <ShoppingBasket />, href: "/produits" },
+  {
+    name: "Nouveau Produits",
+    icon: <PackagePlus />,
+    href: "/nouveau-produits",
+  },
+  { name: "Catégorie", icon: <ListTree />, href: "/categorie" },
+  { name: "Donner", icon: <HandHeart />, href: "/donner" },
+  { name: "Transaction", icon: <Receipt />, href: "/transaction" },
+];
 
-export const ModuleComposant = ({ CloseModale }) => {
+export const NavBar = ({ OpenModale2, OpenModale1 }) => {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [DisplayName, setDisplayName] = useState(null);
   const [DataInfo, setDataInfo] = useState([]);
-  const [TableProduit, setTableProduit] = useState([]);
-  const [OptionValue, setOptionValue] = useState(null);
-  const [Inputvalue, setInputValue] = useState({
-    newQuantity: 0,
-  });
-
-  // Récupération du profil utilisateur
+  const pathname = usePathname();
   useEffect(() => {
-    async function GetProfil() {
-      const r = await fetch(`${apiBaseUrl}/api/profile`, {
-        credentials: "include",
+    fetch("/api/profile", {
+      credentials: "include", // Obligatoire pour envoyer les cookies
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setDataInfo(data.user.uid);
+        } else {
+          console.warn("Non connecté :", data.error);
+        }
       });
-      const data = await r.json();
-      setDataInfo(data.user.uid);
-    }
-    GetProfil();
   }, []);
 
-  useEffect(() => {
-    async function GetProduits() {
-      if (!DataInfo) return;
-      const r = await fetch(`${apiBaseUrl}/api/getproduits?uid=${DataInfo}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await r.json();
-      setTableProduit(data.table);
-    }
-    GetProduits();
-  }, [DataInfo]);
+  const [open, setOpen] = useState(false);
 
-  const HandChange = (e) => {
-    const produitId = e.target.value;
-    const produit = TableProduit.find((prev) => prev.id === produitId);
-    if (produit) {
-      setOptionValue(produit);
-      setInputValue({ newQuantity: 0 }); // Reset input à chaque nouveau produit sélectionné
-    }
-  };
+  const router = useRouter();
 
-  const handleInputChange = (e) => {
-    const updatedQuantity = Number(e.target.value);
-    setInputValue((prev) => ({
-      ...prev,
-      newQuantity: updatedQuantity,
-    }));
-  };
-
-  async function EdidteQuantite(id) {
-    const quantiteAAjouter = Inputvalue.newQuantity;
-
-    if (quantiteAAjouter <= 0) {
-      alert("Veuillez entrer une quantité positive à ajouter.");
-      return;
-    }
-
-    const copie = TableProduit.map((prev) => {
-      return prev.id === id
-        ? {
-            ...prev,
-            quantity: prev.quantity + quantiteAAjouter,
-          }
-        : prev;
+  const menuRef = useRef();
+  const buttonRef = useRef();
+  // deconnexion
+  const logout = async () => {
+    const r = await fetch(`${apiBaseUrl}/api/logout`, {
+      method: "POST",
     });
-    setTableProduit(copie);
 
-    const body = { newQuantity: quantiteAAjouter, id: id };
-
-    const r = await fetch(
-      `${apiBaseUrl}/api/ajouterquantite?uid=${DataInfo}&id=${id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
-    const data = await r.json();
     if (r.ok) {
-      toast.success("Quantité ajouter au produit avec succès");
+      toast.info("Vous êtes déconnecté");
+      setTimeout(() => {
+        router.push("/connexion");
+      }, 3000); // Redirige vers la page de login
     } else {
-      toast.error("Impossible d'ajouter des quantité avec produit");
+      alert("Erreur lors de la deconnexion");
     }
-  }
-
+  };
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    const handler = (e) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    let timeout = setTimeout(() => {
+      document.addEventListener("click", handler);
+    }, 100); // ← petit délai pour éviter de capturer le clic qui ouvre
     return () => {
-      document.body.style.overflow = "auto";
+      clearTimeout(timeout);
+      document.removeEventListener("click", handler);
     };
   }, []);
 
+  useEffect(() => {
+    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${DataInfo}`, {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((doc) => {
+        if (Array.isArray(doc.table)) {
+          setDisplayName(doc.table);
+        } else if (doc.table) {
+          setDisplayName([doc.table]);
+        }
+      });
+  }, [DataInfo]);
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center transition-opacity duration-300">
-      <div className="bg-gray-900 rounded-sm shadow-lg p-6 w-full max-w-lg mx-4 relative animate-fadeIn border border-amber-100 ">
-        <button
-          onClick={CloseModale}
-          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl font-bold"
-        >
-          &times;
-        </button>
-        <div>
-          <h1>
-            <strong>Gestion du stock</strong>
-          </h1>
-          <div className="grid space-y-3">
-            <span>
-              Ajouter des quantité aux produits disponibles dans votre stock
-            </span>
-            <span>Sélectionner un produit</span>
-            <select
-              className="border border-amber-100 p-1 rounded-sm w-full outline-none"
-              name={"name"}
-              onChange={HandChange}
+    <div className="md:mt-8 md:px-30 w-full mb-8">
+      <div className="md:flex  justify-between items-center justify-items-center">
+        <Link href={"/acceuil"}>
+          <button className="hidden md:flex items-center bg-gray-500 py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer">
+            <PackagePlus />
+            AssoStock
+          </button>
+        </Link>
+
+        <div className="hidden md:flex space-x-3 ">
+          {menu.map((items, index) => (
+            <Link key={index} href={items.href}>
+              <button
+                className={` ${
+                  pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
+                }  flex items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer`}
+              >
+                {items.icon} {items.name}
+              </button>
+            </Link>
+          ))}
+          <Link href={"#"}>
+            <button
+              onClick={OpenModale2}
+              className="inline-flex bg-gray-500 items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer"
             >
-              <option value="">Sélectionner le produit</option>
-              {TableProduit.map((items) => (
-                <option className="text-black" key={items.id} value={items.id}>
-                  {items.name}
-                </option>
+              <Warehouse />
+              Alimenter le stock
+            </button>
+          </Link>
+          {Array.isArray(DisplayName) &&
+            DisplayName.map((items, index) => (
+              <Deconnexion nameUser={items.displayName} key={index} />
+            ))}
+        </div>
+      </div>
+
+      {/* Menu phone */}
+      <div
+        className={`md:hidden flex justify-between items-center px-4 py-4 ${
+          open ? "hidden" : "block"
+        }`}
+      >
+        <button className="flex gap-2">
+          <PackagePlus />
+          AssoStock
+        </button>
+        <div
+          ref={buttonRef}
+          onClick={() => {
+            setOpen(!open);
+          }}
+          className="bg-gray-600 p-2 rounded-sm cursor-pointer"
+        >
+          <AlignJustify />
+        </div>
+      </div>
+
+      {/* Menu mobile avec bouton Profil en bas */}
+      <div
+        ref={menuRef}
+        className={`md:hidden bg-gray-900 w-8/12 fixed top-0 left-0 h-[100vh] transition-transform duration-300 ease-in-out z-50 py-6 px-4 flex flex-col justify-between   ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Haut du menu */}
+        <div className="grid grid-cols-1 gap-4">
+          {menu.map((items, index) => (
+            <Link
+              onClick={() => setOpen(false)}
+              key={index}
+              href={items.href}
+              className={`${
+                pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
+              }  inline-flex p-2 rounded-2xl gap-3 items-center  `}
+            >
+              {items.icon} {items.name}
+            </Link>
+          ))}
+          <button
+            onClick={OpenModale1}
+            className="bg-gray-500 inline-flex p-2 rounded-2xl gap-3 items-center cursor-pointer"
+          >
+            <Warehouse />
+            Alimenter le stock
+          </button>
+        </div>
+
+        {/* Bas du menu : bouton Profil */}
+        <div className="mb-8 flex flex-col">
+          <div className="inline-flex space-x-3 items-center cursor-pointer p-2">
+            <CircleUserRound />
+            {Array.isArray(DisplayName) &&
+              DisplayName.map((item, index) => (
+                <span key={index}>{item.displayName}</span>
               ))}
-            </select>
-
-            {OptionValue && (
-              <div className="grid space-y-2">
-                <strong>NOM: {OptionValue.name}</strong>
-                <span>
-                  <strong>CATEGORIE:</strong>{" "}
-                  <span className="bg-amber-100 text-orange-500 rounded-sm p-1">
-                    {OptionValue.categorie}
-                  </span>
-                </span>
-                <span>
-                  <strong>QUANTITE:</strong>{" "}
-                  <span className="bg-amber-100 text-orange-500 rounded-sm p-1">
-                    {Number(OptionValue.quantity) +
-                      Number(Inputvalue.newQuantity)}{" "}
-                    {OptionValue.unit}
-                  </span>
-                </span>
-              </div>
-            )}
-
-            <span>Quantité à ajouter</span>
-            <input
-              name="quantity"
-              type="number"
-              value={Inputvalue.newQuantity}
-              onChange={handleInputChange}
-              className="border border-amber-100 p-1 w-full rounded-sm outline-none"
-            />
-
-            <Bouton
-              onClick={() => {
-                if (OptionValue?.id) {
-                  EdidteQuantite(OptionValue.id);
-                } else {
-                  console.warn("Aucun produit sélectionné");
-                }
-              }}
-              className={"p-1 px-3 cursor-pointer rounded-sm bg-pink-400"}
-              name={"Ajouter au stock"}
-            />
+          </div>
+          <div
+            onClick={() => (location.href = "/reglage/profil")}
+            className="inline-flex space-x-3 items-center cursor-pointer p-2"
+          >
+            <Settings />
+            <span>Paramètre</span>
+          </div>
+          <div
+            className="inline-flex space-x-3 items-center cursor-pointer p-2"
+            onClick={logout}
+          >
+            <LogOut />
+            <span>Déconnexion</span>
           </div>
         </div>
       </div>

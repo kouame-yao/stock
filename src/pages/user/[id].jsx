@@ -13,7 +13,8 @@ const unite = [
   { id: 5, nom: "Once", abbr: "oz", type: "poids" },
 ];
 export default function UserPage() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
   const router = useRouter();
   const { id } = router.query;
   const [DataInfo, setDataInfo] = useState([]);

@@ -5,7 +5,8 @@ import { Bouton } from "../../components/bouton";
 import Wrapper from "../../components/wrapper";
 import withAuth from "../../lib/withAuth";
 const Categorie = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
   const [Open, setOpen] = useState(false);
   const [OpenEdited, setOpenEdited] = useState(false);
   const [DataInfo, setDataInfo] = useState(null);

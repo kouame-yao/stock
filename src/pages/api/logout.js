@@ -1,6 +1,16 @@
 const cookie = require("cookie");
 
 export default function handler(req, res) {
+  // Gestion CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    // Réponse pour prévol OPTIONS
+    return res.status(200).end();
+  }
+
   if (req.method === "POST") {
     res.setHeader(
       "Set-Cookie",
@@ -9,12 +19,12 @@ export default function handler(req, res) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         path: "/",
-        maxAge: 0, // <-- Efface le cookie
+        maxAge: 0, // Efface le cookie
       })
     );
 
-    res.status(200).json({ message: "Déconnexion réussie" });
+    return res.status(200).json({ message: "Déconnexion réussie" });
   } else {
-    res.status(405).json({ error: "Méthode non autorisée" });
+    return res.status(405).json({ error: "Méthode non autorisée" });
   }
 }
