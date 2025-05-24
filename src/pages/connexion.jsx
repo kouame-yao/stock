@@ -30,18 +30,23 @@ const Connexion = () => {
       headers: {
         "Content-Type": "application/json",
       },
-
       body: JSON.stringify(valuInput),
     });
 
     const data = await r.json();
 
-    router.push("/acceuil");
-
-    setValuInput({
-      email: "",
-      password: "",
-    });
+    if (r.ok && data.user) {
+      // Connexion réussie
+      router.push("/acceuil");
+      setValuInput({
+        email: "",
+        password: "",
+        emailValide: "",
+      });
+    } else {
+      // Connexion échouée
+      toast.error(data.message || "Email ou mot de passe incorrect");
+    }
   }
 
   // Exemple React (useEffect)
