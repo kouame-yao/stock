@@ -1,10 +1,8 @@
-import cookie from "cookie";
+const cookie = require("cookie");
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import jwt from "jsonwebtoken";
-
 const SECRET_KEY = "hjskhfkdfkfdhskfhsdkjhfkshkhg";
-
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -14,19 +12,10 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
 
 export default async function handler(req, res) {
-  // Gestion CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  // Réponse à la requête preflight OPTIONS
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Méthode non autorisée" });
   }
@@ -46,12 +35,14 @@ export default async function handler(req, res) {
         uid: user.uid,
         email: user.email,
         DisplayName: user.displayName,
+        user: user,
       },
       SECRET_KEY,
-      { expiresIn: "7d" }
+      {
+        expiresIn: "7d",
+      }
     );
 
-    // Envoi du cookie sécurisé
     res.setHeader(
       "Set-Cookie",
       cookie.serialize("token", token, {
