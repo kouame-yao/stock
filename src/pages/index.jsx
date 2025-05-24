@@ -33,13 +33,12 @@ const Connexion = () => {
 
     const data = await r.json();
     console.log(data.message);
+    const message = data.message;
 
     if (r.ok) {
-      toast.success("Inscription reussit");
+      toast.success(message);
     } else {
-      toast.error(
-        "Impossible de vous enregistré veillez utilisez un autre mail"
-      );
+      toast.error(message);
     }
 
     setValuInput({
