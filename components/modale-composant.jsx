@@ -125,14 +125,15 @@ export const ModuleComposant = ({ CloseModale }) => {
         </div>
         <div className="grid gap-2">
           <span>Sélectionner un produit</span>
-          {tableProduit.map((item, index) => (
-            <select
-              onChange={HandChang}
-              className="border outline-amber-100 px-3 md:w-full  -outline-offset-4 border-amber-100 rounded-md p-1"
-              name=""
-              id=""
-            >
-              <option>Produit en stock</option>
+          <select
+            onChange={HandChang}
+            className="border outline-amber-100 px-3 md:w-full  -outline-offset-4 border-amber-100 rounded-md p-1"
+            name=""
+            id=""
+          >
+            <option>Produit en stock</option>
+
+            {tableProduit.map((item, index) => (
               <option
                 key={index}
                 className="text-black w-full max-w-sm "
@@ -140,8 +141,8 @@ export const ModuleComposant = ({ CloseModale }) => {
               >
                 {item.name}
               </option>
-            </select>
-          ))}
+            ))}
+          </select>
         </div>
 
         {Array.isArray(valueOption)
