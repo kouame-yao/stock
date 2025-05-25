@@ -16,10 +16,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import Deconnexion from "./deconnexion";
 import { ModuleComposant } from "./modale-composant";
-import { createPortal } from "react-dom";
 
 const menu = [
   { name: "Tableau de Bord", icon: <LayoutDashboard />, href: "/acceuil" },
@@ -207,7 +207,7 @@ export const NavBar = ({ OpenModale2, OpenModale1 }) => {
         </div>
 
         {/* Bas du menu : bouton Profil */}
-        <div className="mb-8 flex flex-col">
+        <div className="mb-20 flex flex-col">
           <div className="inline-flex space-x-3 items-center cursor-pointer p-2">
             <CircleUserRound />
             {Array.isArray(displayName) &&
