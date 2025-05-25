@@ -28,6 +28,12 @@ export default async function handler(req, res) {
       const prevQuant = data.quantity;
       const quantNumber = Number(newQuantity); // négatif si retrait
 
+      if (quantNumber < 0) {
+        return res
+          .status(405)
+          .json({ message: "Impossible d'ajouter une valeur négative" });
+      }
+
       const nouveauQuant = quantNumber + prevQuant;
 
       await docRef.update({ quantity: nouveauQuant });
@@ -40,9 +46,7 @@ export default async function handler(req, res) {
       });
 
       return res.status(200).json({
-        message: "Quantité retirée avec succès",
-        ancienne: prevQuant,
-        nouvelle: nouveauQuant,
+        message: `Quantité Ajouter avec succès ancienne: ${prevQuant} nouvelle: ${nouveauQuant} `,
       });
     } catch (error) {
       console.error("Erreur lors de la mise à jour :", error);

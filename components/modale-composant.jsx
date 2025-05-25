@@ -1,224 +1,188 @@
-import {
-  AlignJustify,
-  CircleUserRound,
-  HandHeart,
-  LayoutDashboard,
-  ListTree,
-  LogOut,
-  PackagePlus,
-  Receipt,
-  Settings,
-  ShoppingBasket,
-  Warehouse,
-} from "lucide-react";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/router";
+import { PackageOpen, Table } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Deconnexion from "./deconnexion";
-const menu = [
-  { name: "Tableau de Bord", icon: <LayoutDashboard />, href: "/acceuil" },
-  { name: "Produits", icon: <ShoppingBasket />, href: "/produits" },
-  {
-    name: "Nouveau Produits",
-    icon: <PackagePlus />,
-    href: "/nouveau-produits",
-  },
-  { name: "Catégorie", icon: <ListTree />, href: "/categorie" },
-  { name: "Donner", icon: <HandHeart />, href: "/donner" },
-  { name: "Transaction", icon: <Receipt />, href: "/transaction" },
-];
+export const ModuleComposant = ({ CloseModale }) => {
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+  const [dataInfo, setDataInfo] = useState(null);
+  const [tableProduit, setTableProduit] = useState([]);
+  const [currentInput, setcurrentInput] = useState(0);
+  const [idItem, setIdItem] = useState(null);
+  const [valueInput, setValueInput] = useState({
+    newQuantity: "",
+  });
+  const [valueOption, setValueOption] = useState();
 
-export const NavBar = ({ OpenModale2, OpenModale1 }) => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const [DisplayName, setDisplayName] = useState(null);
-  const [DataInfo, setDataInfo] = useState([]);
-  const pathname = usePathname();
+  // Récupération des produits après avoir récupéré le uid
   useEffect(() => {
-    fetch("/api/profile", {
-      credentials: "include", // Obligatoire pour envoyer les cookies
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setDataInfo(data.user.uid);
-        } else {
-          console.warn("Non connecté :", data.error);
-        }
-      });
-  }, []);
+    if (!dataInfo) return;
 
-  const [open, setOpen] = useState(false);
+    async function getProduits() {
+      try {
+        const r = await fetch(`${apiBaseUrl}/api/getproduits?uid=${dataInfo}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!r.ok)
+          throw new Error("Erreur lors de la récupération des produits");
+        const data = await r.json();
+        setTableProduit(data.table);
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
 
-  const router = useRouter();
+    getProduits();
+  }, [dataInfo, apiBaseUrl]);
 
-  const menuRef = useRef();
-  const buttonRef = useRef();
-  // deconnexion
-  const logout = async () => {
-    const r = await fetch(`${apiBaseUrl}/api/logout`, {
-      method: "POST",
-    });
+  // Récupération du profil utilisateur
+  useEffect(() => {
+    async function getProfil() {
+      try {
+        const r = await fetch(`${apiBaseUrl}/api/profile`, {
+          credentials: "include",
+        });
+        if (!r.ok) throw new Error("Erreur lors de la récupération du profil");
+        const data = await r.json();
+        setDataInfo(data.user.uid);
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
+    getProfil();
+  }, [apiBaseUrl]);
+
+  // Option onchange
+  const HandChang = (e) => {
+    setIdItem(e.target.value);
+    const valeur = tableProduit.find((prev) => prev.id === e.target.value);
+    setValueOption(valeur);
+  };
+
+  // Input onchange
+  const HandChangInput = (e) => {
+    const { name, value } = e.target;
+
+    setValueInput((prev) => ({ ...prev, [name]: value }));
+    const nombre = Number(e.target.value);
+    const difference = nombre - currentInput;
+    setcurrentInput(nombre);
+    const copieTable = {
+      ...valueOption,
+      quantity: valueOption.quantity + difference,
+    };
+
+    setValueOption(copieTable);
+  };
+
+  // // recupt object
+  // useEffect(() => {
+  //   if (valueOption) {
+  //     setnewTable([{ ...valueOption }]);
+  //   }
+  // }, [valueOption]);
+
+  async function AddQuantite() {
+    const body = { newQuantity: valueInput.newQuantity };
+
+    const r = await fetch(
+      `${apiBaseUrl}/api/ajouterquantite?uid=${dataInfo}&id=${idItem}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = await r.json();
+
+    const message = data.message;
 
     if (r.ok) {
-      toast.info("Vous êtes déconnecté");
-      setTimeout(() => {
-        router.push("/connexion");
-      }, 3000); // Redirige vers la page de login
+      toast.success(message);
     } else {
-      alert("Erreur lors de la deconnexion");
+      toast.error(message);
     }
-  };
-  useEffect(() => {
-    const handler = (e) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    let timeout = setTimeout(() => {
-      document.addEventListener("click", handler);
-    }, 100); // ← petit délai pour éviter de capturer le clic qui ouvre
-    return () => {
-      clearTimeout(timeout);
-      document.removeEventListener("click", handler);
-    };
-  }, []);
-
-  useEffect(() => {
-    fetch(`${apiBaseUrl}/api/userData/getUserData?uid=${DataInfo}`, {
-      method: "GET",
-    })
-      .then((response) => response.json())
-      .then((doc) => {
-        if (Array.isArray(doc.table)) {
-          setDisplayName(doc.table);
-        } else if (doc.table) {
-          setDisplayName([doc.table]);
-        }
-      });
-  }, [DataInfo]);
+  }
 
   return (
-    <div className="md:mt-8 md:px-30 w-full mb-8">
-      <div className="md:flex  justify-between items-center justify-items-center">
-        <Link href={"/acceuil"}>
-          <button className="hidden md:flex items-center bg-gray-500 py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer">
-            <PackagePlus />
-            AssoStock
-          </button>
-        </Link>
-
-        <div className="hidden md:flex space-x-3 ">
-          {menu.map((items, index) => (
-            <Link key={index} href={items.href}>
-              <button
-                className={` ${
-                  pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
-                }  flex items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer`}
-              >
-                {items.icon} {items.name}
-              </button>
-            </Link>
-          ))}
-          <Link href={"#"}>
-            <button
-              onClick={OpenModale2}
-              className="inline-flex bg-gray-500 items-center py-1 gap-2 justify-center px-1 rounded-sm cursor-pointer"
-            >
-              <Warehouse />
-              Alimenter le stock
+    <div className="flex flex-col justify-center items-center bg-black/50 fixed w-screen h-screen top-0 left-0 ">
+      <div className="grid bg-gray-600 md:w-lg w-sm px-4 gap-4 py-4 rounded-md">
+        <div className="grid gap-2">
+          <div className="flex justify-between">
+            <strong>Gestion du stock</strong>
+            <button onClick={CloseModale} className="font-bold cursor-pointer">
+              X
             </button>
-          </Link>
-          {Array.isArray(DisplayName) &&
-            DisplayName.map((items, index) => (
-              <Deconnexion nameUser={items.displayName} key={index} />
-            ))}
+          </div>
+          <span>
+            Ajouter des quantités aux produit disponible dans votre stock
+          </span>
         </div>
-      </div>
-
-      {/* Menu phone */}
-      <div
-        className={`md:hidden flex justify-between items-center px-4 py-4 ${
-          open ? "hidden" : "block"
-        }`}
-      >
-        <button className="flex gap-2">
-          <PackagePlus />
-          AssoStock
-        </button>
-        <div
-          ref={buttonRef}
-          onClick={() => {
-            setOpen(!open);
-          }}
-          className="bg-gray-600 p-2 rounded-sm cursor-pointer"
-        >
-          <AlignJustify />
-        </div>
-      </div>
-
-      {/* Menu mobile avec bouton Profil en bas */}
-      <div
-        ref={menuRef}
-        className={`md:hidden bg-gray-900 w-8/12 fixed top-0 left-0 h-[100vh] transition-transform duration-300 ease-in-out z-50 py-6 px-4 flex flex-col justify-between   ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Haut du menu */}
-        <div className="grid grid-cols-1 gap-4">
-          {menu.map((items, index) => (
-            <Link
-              onClick={() => setOpen(false)}
-              key={index}
-              href={items.href}
-              className={`${
-                pathname === items.href ? "bg-blue-400" : "bg-gray-500 "
-              }  inline-flex p-2 rounded-2xl gap-3 items-center  `}
+        <div className="grid gap-2">
+          <span>Sélectionner un produit</span>
+          {tableProduit.map((item, index) => (
+            <select
+              onChange={HandChang}
+              className="border outline-amber-100 px-3 md:w-full  -outline-offset-4 border-amber-100 rounded-md p-1"
+              name=""
+              id=""
             >
-              {items.icon} {items.name}
-            </Link>
+              <option>Produit en stock</option>
+              <option
+                key={index}
+                className="text-black w-full max-w-sm "
+                value={item.id}
+              >
+                {item.name}
+              </option>
+            </select>
           ))}
-          <button
-            onClick={OpenModale1}
-            className="bg-gray-500 inline-flex p-2 rounded-2xl gap-3 items-center cursor-pointer"
-          >
-            <Warehouse />
-            Alimenter le stock
-          </button>
         </div>
 
-        {/* Bas du menu : bouton Profil */}
-        <div className="mb-8 flex flex-col">
-          <div className="inline-flex space-x-3 items-center cursor-pointer p-2">
-            <CircleUserRound />
-            {Array.isArray(DisplayName) &&
-              DisplayName.map((item, index) => (
-                <span key={index}>{item.displayName}</span>
+        {Array.isArray(valueOption)
+          ? []
+          : [valueOption]
+              .filter((item) => item)
+              .map((item, index) => (
+                <div className="flex items-center gap-4 border border-amber-100 p-3 rounded-md">
+                  <PackageOpen
+                    className="bg-pink-200 rounded-md"
+                    color="black"
+                    size={"100"}
+                  />
+                  <div className="grid gap-2">
+                    <strong className=" text-gray-900">{item.name}</strong>
+                    <span className="bg-amber-100 grid items-center justify-center text-orange-400 px-2 rounded-md">
+                      {item.categorie}
+                    </span>
+                    <span className="bg-amber-100 grid items-center justify-center text-orange-400 px-2 rounded-md">
+                      {item.quantity} {item.unit}
+                    </span>
+                  </div>
+                </div>
               ))}
-          </div>
-          <div
-            onClick={() => (location.href = "/reglage/profil")}
-            className="inline-flex space-x-3 items-center cursor-pointer p-2"
-          >
-            <Settings />
-            <span>Paramètre</span>
-          </div>
-          <div
-            className="inline-flex space-x-3 items-center cursor-pointer p-2"
-            onClick={logout}
-          >
-            <LogOut />
-            <span>Déconnexion</span>
-          </div>
+
+        <div className="grid gap-2">
+          <span>Quantité a ajouter</span>
+          <input
+            onChange={HandChangInput}
+            name="newQuantity"
+            value={valueInput.newQuantity}
+            type="number"
+            className="border outline-amber-100 px-3 -outline-offset-4 border-amber-100 p-1 rounded-md"
+          />
         </div>
+        <button
+          onClick={() => AddQuantite()}
+          className="p-2 px-3 bg-pink-300 rounded-md cursor-pointer hover:bg-pink-500"
+        >
+          Ajouter au stock
+        </button>
       </div>
     </div>
   );

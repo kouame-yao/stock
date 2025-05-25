@@ -18,6 +18,8 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import Deconnexion from "./deconnexion";
+import { ModuleComposant } from "./modale-composant";
+import { createPortal } from "react-dom";
 
 const menu = [
   { name: "Tableau de Bord", icon: <LayoutDashboard />, href: "/acceuil" },

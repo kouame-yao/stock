@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   const cookies = parse(req.headers.cookie || "");
   const token = cookies.token;
-  console.log("Cookies reçus:", req.headers.cookie);
+ 
   if (!token) {
     return res.status(401).json({ error: "Aucun token trouvé" });
   }

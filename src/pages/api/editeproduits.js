@@ -9,20 +9,31 @@ export default async function handler(req, res) {
       if (!description || !name || !price || !id) {
         res.status(400).json({ message: "il manque des champs" });
       }
-      const DocRef = await db
+      const DocRef = db
         .collection("user")
         .doc(uid)
         .collection("products")
-        .doc(id)
-        .update({
-          description,
-          name,
-          price,
-          unit,
-        });
+        .doc(id);
+
+      const SnapRef = await DocRef.get();
+
+      if (!SnapRef.exists) {
+        return res.status(404).json({ message: `produits introuvable` });
+      }
+
+      const nom = SnapRef.data().name;
+
+      await DocRef.update({
+        description,
+        name,
+        price,
+        unit,
+      });
       res
         .status(200)
-        .json({ message: "Mise ajour du produit effectuer avec succès" });
+        .json({
+          message: `Mise ajour du produit ${nom}  effectuer avec succès `,
+        });
     } catch (error) {
       res
         .status(200)

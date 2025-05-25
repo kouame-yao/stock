@@ -98,7 +98,7 @@ export default function UserPage() {
     const data = await r.json();
     const message = data.message;
     if (r.ok) {
-      toast.success(`${message}: ${lastEditedField}`);
+      toast.success(`${message}`);
 
       setTimeout(() => {
         document.location.href = "/produits";
@@ -159,7 +159,7 @@ export default function UserPage() {
             </div>
             <div>
               <select
-                onChange={handChange}
+                onChange={(e) => handChange(index, "unit", e.target.value)}
                 className="border border-amber-100 py-2 px-1 rounded-sm w-full text-white cursor-pointer "
                 name="unit"
                 id=""
