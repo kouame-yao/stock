@@ -20,7 +20,7 @@ const donner = () => {
   const [inputSearch, setInputSearch] = useState("");
   const [recupeId, setRecupeId] = useState(null);
   const [OrigineTableau, setOrigineTableau] = useState([]);
-  const [InputUnitValue, setInputInitValue] = useState({ newQuantity: 0 });
+  const [InputUnitValue, setInputInitValue] = useState({ newQuantity: "" });
   const [listeSelect, setListSelect] = useState([]);
   const [erreurMessage, setErreurMessage] = useState("");
 
